@@ -31,13 +31,8 @@ T = applied_torque(load);
 %%%
 %%% -- Plotting Torque vs Angular Displacement -- %%%
 %%%
-[m_ss,m_al,m_br] = plot_data(ss,al,br,T,del_p);
-
-
-
-function [m_ss,m_al,m_br] = plot_data(ss,al,br,T,del_p)
 figure('Name','Angle of Rotation vs Torque Applied')
-plot(ss,T,'r+',al,T,'go',br,T,'b*')
+% plot(ss,T,'r+',al,T,'go',br,T,'b*')
 
 % linear fit for steel
 lin_ss = fitlm(ss,T,'linear');
@@ -61,20 +56,21 @@ br_fit = br .* m_br + b_br;
 hold on
 plot(ss,ss_fit,'r',al,al_fit,'g',br,br_fit,'b')
 err = zeros(1,6)+ del_p;
-errorbar(ss,T,err,'k+','horizontal','MarkerEdgeColor','r','MarkerFaceColor','r')
-errorbar(al,T,err,'ko','horizontal','MarkerEdgeColor','g','MarkerFaceColor','g')
-errorbar(br,T,err,'k*','horizontal','MarkerEdgeColor','b','MarkerFaceColor','b')
+errorbar(ss,T,err,'+','horizontal','MarkerEdgeColor','r','MarkerFaceColor','r')
+errorbar(al,T,err,'o','horizontal')
+errorbar(br,T,err,'*','horizontal')
 
 % Plot tweaks
 ss_leg = sprintf('T_s_s=%.2f\\phi+%.3f',m_ss,b_ss);
 al_leg = sprintf('T_a_l=%.2f\\phi+%.3f',m_al,b_al);
 br_leg = sprintf('T_b_r=%.2f\\phi+%.3f',m_br,b_br);
 legend('304 SS','2011-T3 Al','360 Brass',ss_leg,al_leg,br_leg,'Location','northwest')
-ylim([0 max(T)+.1])
-xlim([0 max([ss,al,br]+.025)])
+ylim([0 max(T)+.2])
+xlim([0 max([ss,al,br]+.05)])
 ylabel('Torque (in-lb)')
 xlabel('\phi (radians)')
 title('T vs \phi')
+
 
 function torque = applied_torque(load)
 force = load ./ 1000 .* 9.8 .* .224808943;
