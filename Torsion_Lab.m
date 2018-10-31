@@ -5,6 +5,10 @@ function Torsion_Lab
 %mass added to pulley in g
 load = [20,40,60,80,100,120];
 
+%Diameter & length of shaft
+D = .125; %in.
+L = 23.75; %in.
+
 % Angular displacement data in degrees
 ss = [1.5,3.1,4.5,6.1,7.6,9.2];
 ss_off = 0;
@@ -33,11 +37,32 @@ T = applied_torque(load);
 %%%
 [m_ss,m_al,m_br] = plot_data(ss,al,br,T,del_p);
 
+%Display the polar moment of inertia
+J = polar_moment(D);
 
+% Calculate the modulus
+[G_ss,G_al,G_br] = modulus(J,L,m_ss,m_al,m_br);
+
+
+
+function [G_ss,G_al,G_br] = modulus(J,L,m_ss,m_al,m_br)
+G_ss = m_ss * L / J;
+G_al = m_al * L / J;
+G_br = m_br * L / J;
+
+fprintf('G for SS: %.2f\nG for Al: %.2f\nG for br: %.2f\n',G_ss,G_al,G_br)
+
+function pol = polar_moment(D)
+pol = pi*D^4/32;
+fprintf('The polar moment of inerita is: %.3e\n',pol)
 
 function [m_ss,m_al,m_br] = plot_data(ss,al,br,T,del_p)
 figure('Name','Angle of Rotation vs Torque Applied')
 plot(ss,T,'r+',al,T,'go',br,T,'b*')
+
+%Uncertainty dots
+hold on
+plot(ss+del_p,T,'k.',ss-del_p,T,'k.',al+del_p,T,'k.',al-del_p,T,'k.',br+del_p,T,'k.',br-del_p,T,'k.','HandleVisibility','off','MarkerSize',9)
 
 % linear fit for steel
 lin_ss = fitlm(ss,T,'linear');
@@ -60,10 +85,6 @@ br_fit = br .* m_br + b_br;
 % plotting the linear fits
 hold on
 plot(ss,ss_fit,'r',al,al_fit,'g',br,br_fit,'b')
-err = zeros(1,6)+ del_p;
-errorbar(ss,T,err,'k+','horizontal','MarkerEdgeColor','r','MarkerFaceColor','r')
-errorbar(al,T,err,'ko','horizontal','MarkerEdgeColor','g','MarkerFaceColor','g')
-errorbar(br,T,err,'k*','horizontal','MarkerEdgeColor','b','MarkerFaceColor','b')
 
 % Plot tweaks
 ss_leg = sprintf('T_s_s=%.2f\\phi+%.3f',m_ss,b_ss);
@@ -75,6 +96,8 @@ xlim([0 max([ss,al,br]+.025)])
 ylabel('Torque (in-lb)')
 xlabel('\phi (radians)')
 title('T vs \phi')
+
+fprintf('The Spring Constants are as follows:\nSS: %.3f\nAl: %.3f\nBr: %.3f\n',m_ss,m_al,m_br)
 
 function torque = applied_torque(load)
 force = load ./ 1000 .* 9.8 .* .224808943;
