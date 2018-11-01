@@ -25,8 +25,18 @@ ss = deg_to_rad(offset(ss,ss_off));
 al = deg_to_rad(offset(al,al_off));
 br = deg_to_rad(offset(br,br_off));
 
+disp('SS')
+disp(ss)
+disp('Al')
+disp(al)
+disp('Br')
+disp(br)
+
 %%% Error in measurement of the DLAG
 del_p = deg_to_rad(.05);
+
+disp('Uncertainty')
+disp(del_p)
 
 %%% Vector of force computed from loads applied
 T = applied_torque(load);
@@ -56,13 +66,14 @@ function pol = polar_moment(D)
 pol = pi*D^4/32;
 fprintf('The polar moment of inerita is: %.3e\n',pol)
 
+
 function [m_ss,m_al,m_br] = plot_data(ss,al,br,T,del_p)
 figure('Name','Angle of Rotation vs Torque Applied')
 plot(ss,T,'r+',al,T,'go',br,T,'b*')
 
 %Uncertainty dots
 hold on
-plot(ss+del_p,T,'k.',ss-del_p,T,'k.',al+del_p,T,'k.',al-del_p,T,'k.',br+del_p,T,'k.',br-del_p,T,'k.','HandleVisibility','off','MarkerSize',9)
+%plot(ss+del_p,T,'k:',ss-del_p,T,'k:',al+del_p,T,'k:',al-del_p,T,'k:',br+del_p,T,'k:',br-del_p,T,'k:','HandleVisibility','off','MarkerSize',9)
 
 % linear fit for steel
 lin_ss = fitlm(ss,T,'linear');
@@ -85,12 +96,15 @@ br_fit = br .* m_br + b_br;
 % plotting the linear fits
 hold on
 plot(ss,ss_fit,'r',al,al_fit,'g',br,br_fit,'b')
+hold on
+%plot(ss+del_p,ss_fit,'k:',ss-del_p,ss_fit,'k:',al+del_p,al_fit,'k:',al-del_p,al_fit,'k:',br+del_p,br_fit,'k:'...
+%    ,br-del_p,br_fit,'k:','HandleVisibility','off')
 
 % Plot tweaks
 ss_leg = sprintf('T_s_s=%.2f\\phi+%.3f',m_ss,b_ss);
 al_leg = sprintf('T_a_l=%.2f\\phi+%.3f',m_al,b_al);
 br_leg = sprintf('T_b_r=%.2f\\phi+%.3f',m_br,b_br);
-legend('304 SS','2011-T3 Al','360 Brass',ss_leg,al_leg,br_leg,'Location','northwest')
+legend('304 SS','2011-T3 Al','360 Brass',ss_leg,al_leg,br_leg,'Location','southeast')
 ylim([0 max(T)+.1])
 xlim([0 max([ss,al,br]+.025)])
 ylabel('Torque (in-lb)')
@@ -99,9 +113,47 @@ title('T vs \phi')
 
 fprintf('The Spring Constants are as follows:\nSS: %.3f\nAl: %.3f\nBr: %.3f\n',m_ss,m_al,m_br)
 
+
+figure('Name','Steel')
+plot(ss,ss_fit,'b',ss,T,'k.','MarkerSize',15)
+hold on
+plot(ss+del_p,ss_fit,'k:')
+hold on
+plot(ss-del_p,ss_fit,'k:','HandleVisibility','off')
+title('T vs \phi for 304 SS')
+xlabel('\phi (radians)')
+ylabel('Torque (in-lb)')
+legend(ss_leg,'304 SS','Error Estimate','Location','northwest')
+
+figure('Name','Aluminum')
+plot(al,al_fit,'b',al,T,'k.','MarkerSize',15)
+hold on
+plot(al+del_p,al_fit,'k:')
+hold on
+plot(al-del_p,al_fit,'k:','HandleVisibility','off')
+title('T vs \phi for 2011-T3 Al')
+xlabel('\phi (radians)')
+ylabel('Torque (in-lb)')
+legend(al_leg,'2011-T3 Al','Error Estimate','Location','northwest')
+
+figure('Name','Brass')
+plot(br,br_fit,'b',br,T,'k.','MarkerSize',15)
+hold on
+plot(br+del_p,br_fit,'k:')
+hold on
+plot(br-del_p,br_fit,'k:','HandleVisibility','off')
+title('T vs \phi for 360 Brass')
+xlabel('\phi (radians)')
+ylabel('Torque (in-lb)')
+legend(br_leg,'360 Brass','Error Estimate','Location','northwest')
+
+
+
 function torque = applied_torque(load)
 force = load ./ 1000 .* 9.8 .* .224808943;
 torque = force .* (11.875/2);
+disp('Torques')
+disp(torque)
 
 function out = offset(vec,off)
 out = vec - off;
